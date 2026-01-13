@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Juego Horror Paranormales</title>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:url('https://backiee.com/static/wallpapers/1000x563/375968.jpg') center/cover no-repeat;
+  font-family:Arial,sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  overflow-x:hidden;
+  overflow-y:hidden;
+  position: relative;
+}
+
+/* AVATAR */
+.avatar{width:min(280px,70vw);margin:15px 0;animation:breathe 5s ease-in-out infinite;z-index:10}
+.avatar img{width:100%}
+@keyframes breathe{50%{transform:translateY(-6px)}}
+
+/* BOTONES */
+button,select{
+  padding:12px 25px;
+  font-size:20px;
+  font-family:'Creepster',cursive;
+  background:darkred;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer
+}
+#reiniciarBtn{position:fixed;top:15px;left:15px;z-index:30}
+#instruccionesBtn{position:fixed;top:15px;right:15px;z-index:30}
+
+/* INICIO */
+.container{
+  background:rgba(0,0,0,.65);
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  width:min(90%,420px);
+  z-index:20
+}
+.container h1{font-family:'Creepster',cursive;color:white}
+.container select{
+  margin:15px 0;
+  width:80%;
+  max-width:280px;
+}
+
+/* COFRES */
+#cuadros-container{
+  width:95%;
+  max-width:1200px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(70px,1fr));
+  gap:15px;
+  padding-bottom:40px;
+  position: relative;
+  z-index: 5;
+}
+.cuadro{
+  aspect-ratio:1/1;
+  background:url("https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/cofre.png") center/cover no-repeat;
+  border-radius:8px;
+  cursor:pointer;
+  position:relative;
+  animation:fadeIn .6s forwards,sway 4s infinite
+}
+.cuadro::before{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  border-radius:12px;
+  background:radial-gradient(circle,rgba(255,0,0,.45),transparent 70%);
+  animation:redPulse 3s ease-in-out infinite;
+  z-index:-1
+}
+.cuadro:hover{
+  box-shadow:0 0 20px #00ff00,inset 0 0 20px #00ff00
+}
+@keyframes redPulse{50%{opacity:.3}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes sway{50%{transform:translateX(4px)}}
+
+/* MURCIÉLAGOS */
+.murcielago {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: url("https://github.com/horrorparanormales/Avatar-el-Horror/raw/main/murcielago%20limpio.png") center/contain no-repeat;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+}
+
+/* COFRE GANADOR */
+.premio{
+  background-image:url("https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/cofre%20ganador.png");
+  position:fixed;
+  top:50%;
+  left:50%;
+  width:min(260px,80vw);
+  height:min(260px,80vw);
+  transform:translate(-50%,-50%);
+  z-index:50;
+  animation:winnerFloat 4s ease-in-out infinite
+}
+@keyframes winnerFloat{50%{transform:translate(-50%,-55%)}}
+
+/* LLAVE */
+.llave-ganadora{
+  position:fixed;
+  top:calc(50% - 160px);
+  left:50%;
+  width:120px;
+  height:120px;
+  transform:translateX(-50%);
+  background:url("https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/llave%20de%20cofre.png") center/contain no-repeat;
+  z-index:120;
+  pointer-events:none;
+  animation:llaveFlota 4s ease-in-out infinite
+}
+.llave-ganadora::before{
+  content:"";
+  position:absolute;
+  inset:-25px;
+  border-radius:50%;
+  background:conic-gradient(rgba(0,255,0,0),rgba(0,255,0,.9),rgba(0,255,0,0));
+  filter:blur(6px);
+  animation:giroBrillo 3s linear infinite
+}
+@keyframes llaveFlota{50%{transform:translateX(-50%) translateY(-18px)}}
+@keyframes giroBrillo{to{transform:rotate(360deg)}}
+
+/* ERROR */
+.error-overlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:80;
+  perspective:800px
+}
+.error-box{text-align:center;animation:errorZoomFade 2s ease-out forwards}
+.x-mark{font-size:90px;color:#00ff00;-webkit-text-stroke:3px black}
+.error-text{font-family:'Creepster',cursive;font-size:40px;color:#00ff00;-webkit-text-stroke:2px black}
+@keyframes errorZoomFade{
+  0%{transform:scale(.3) translateZ(-300px);opacity:0;filter:blur(10px)}
+  40%{opacity:1;filter:blur(0)}
+  100%{transform:scale(1.5) translateZ(200px);opacity:0;filter:blur(12px)}
+}
+
+/* LOADING */
+.loading-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:200
+}
+.loading-overlay video{
+  width:min(90%,600px);
+  border-radius:12px;
+  box-shadow:0 0 40px crimson
+}
+
+/* TERMÓMETRO - detrás de los cofres y más a la izquierda */
+#triesContainer{
+  position: fixed;
+  left: -120px;               /* más a la izquierda (ajusta si quieres más/menos) */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;                 /* ← importante: menor que el z-index de los cofres (5) */
+  display: none;
+  animation: respirar 4s ease-in-out infinite;
+  pointer-events: none;       /* clics pasan a través del termómetro */
+}
+#triesContainer::before{
+  content: "";
+  position: absolute;
+  inset: -60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120,220,255,.65), transparent 70%);
+  filter: blur(30px);
+  animation: bluePulse 3s ease-in-out infinite;
+  z-index: -1;                /* brillo también detrás */
+}
+#triesContainer img{
+  width: 720px;
+  height: auto;
+  filter: drop-shadow(0 0 15px rgba(120,220,255,0.5));
+}
+#triesText{
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Creepster', cursive;
+  font-size: 100px;
+  color: #7fdcff;
+  -webkit-text-stroke: 4px black;
+  text-shadow: 0 0 20px #7fdcff, 0 0 30px #00aaff;
+  letter-spacing: 2px;
+  pointer-events: none;
+}
+@keyframes respirar{50%{transform:translateY(-50%) scale(1.05)}}
+@keyframes bluePulse{50%{opacity:.3}}
+
+/* MODAL DE INSTRUCCIONES */
+#instruccionesModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+#instruccionesModal img {
+  max-width: 92%;
+  max-height: 90vh;
+  border: 4px solid #00ff00;
+  border-radius: 12px;
+  box-shadow: 0 0 30px #00ff00, 0 0 60px #00aa00;
+}
+#instruccionesModal .cerrar {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 50px;
+  color: #00ff00;
+  cursor: pointer;
+  font-family: 'Creepster', cursive;
+  text-shadow: 0 0 10px #000, 0 0 20px #000;
+}
+</style>
+</head>
+<body>
+<audio id="hoverSound" src="https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/sonido%20de%20cursor.mp3"></audio>
+<audio id="openSound" src="https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/sondigo%20de%20cofre%20al%20abrirse.mp3"></audio>
+<audio id="bgMusic" loop src="https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/80s%20Retro%20Horror%20Synth%20-%20The%20Witch%20Royalty%20Free%20No%20Copyright%20Background%20Music.mp3"></audio>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <video src="https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/loading%20video%20real.mp4" autoplay muted></video>
+</div>
+
+<div class="avatar">
+  <img id="avatarImg" src="https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/EL_horror-sin%20fondo.png">
+</div>
+
+<button id="reiniciarBtn" onclick="location.reload()">Reiniciar</button>
+<button id="instruccionesBtn" onclick="abrirInstrucciones()">Instrucciones</button>
+
+<div class="container" id="start">
+  <h1>Juego Horror Paranormales</h1>
+  <select id="jugadoresSelect">
+    <option value="1">1 Jugador</option>
+    <option value="2">2 Jugadores</option>
+    <option value="3">3 Jugadores</option>
+    <option value="4">4 Jugadores</option>
+  </select>
+  <button onclick="startGame()">INICIAR JUEGO</button>
+</div>
+
+<div id="triesContainer">
+  <img id="termoImg" src="https://github.com/horrorparanormales/loading-bar/blob/main/termo%200.png?raw=true">
+  <div id="triesText">10</div>
+</div>
+
+<div id="cuadros-container"></div>
+
+<div class="error-overlay" id="errorOverlay">
+  <div class="error-box">
+    <div class="x-mark">✖</div>
+    <div class="error-text">EQUIVOCADO</div>
+  </div>
+</div>
+
+<div id="instruccionesModal">
+  <span class="cerrar" onclick="cerrarInstrucciones()">X</span>
+  <img src="https://github.com/horrorparanormales/Avatar-el-Horror/raw/main/instrucciones.png" alt="Instrucciones del juego">
+</div>
+
+<script>
+// MURCIÉLAGOS (sin cambios)
+function crearMurcielago() {
+  const mur = document.createElement('div');
+  mur.className = 'murcielago';
+
+  const size       = 40 + Math.random() * 50;
+  const startY     = 5 + Math.random() * 70;
+  const duration   = 12 + Math.random() * 18;
+  const delay      = Math.random() * 6;
+  const direction  = Math.random() > 0.45 ? 1 : -1;
+  const curve      = (Math.random() - 0.5) * 60;
+  const rotation   = (Math.random() - 0.5) * 40;
+
+  mur.style.width          = `${size}px`;
+  mur.style.height         = `${size}px`;
+  mur.style.top            = `${startY}vh`;
+  mur.style.left           = direction > 0 ? '-100px' : 'calc(100% + 100px)';
+  mur.style.transform      = `scaleX(${direction}) rotate(${rotation}deg)`;
+  mur.style.animation      = `volarMurcielago ${duration}s linear ${delay}s forwards`;
+
+  const animName = `volar-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = `
+    @keyframes ${animName} {
+      0%   { opacity: 0; transform: translateX(0) translateY(0) rotate(${rotation}deg); }
+      10%  { opacity: ${0.6 + Math.random()*0.4}; }
+      50%  { transform: translateX(${direction * 50 + Math.random()*40}vw) translateY(${curve}vh) rotate(${rotation + (Math.random()*20-10)}deg); }
+      90%  { opacity: ${0.7 + Math.random()*0.3}; }
+      100% { opacity: 0; transform: translateX(${direction * (100 + Math.random()*60)}vw) translateY(${curve + (Math.random()*40 - 20)}vh) rotate(${rotation + (Math.random()*30-15)}deg); }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+  mur.style.animationName = animName;
+
+  document.body.appendChild(mur);
+
+  mur.addEventListener('animationend', () => {
+    mur.remove();
+    styleSheet.remove();
+    setTimeout(crearMurcielago, Math.random() * 1800 + 600);
+  });
+}
+
+window.addEventListener('load', () => {
+  const iniciales = 3 + Math.floor(Math.random() * 6);
+  for (let i = 0; i < iniciales; i++) {
+    setTimeout(crearMurcielago, i * 800 + Math.random() * 2000);
+  }
+});
+
+// JUEGO (sin cambios)
+const hoverSound = document.getElementById("hoverSound");
+const openSound = document.getElementById("openSound");
+const bgMusic = document.getElementById("bgMusic");
+const triesContainer = document.getElementById("triesContainer");
+const triesText = document.getElementById("triesText");
+const termoImg = document.getElementById("termoImg");
+const termoImgs = [
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%200.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%201.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%202.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%203.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%204.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%205.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%206.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%207.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%208.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%209.png?raw=true",
+ "https://github.com/horrorparanormales/loading-bar/blob/main/termo%2010.png?raw=true"
+];
+const avatarImg = document.getElementById("avatarImg");
+const normal = avatarImg.src;
+const confundido = "https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/confundido%20sin%20background.png";
+const ganador = "https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/ganaste%20background%20limpio.png";
+const cofreAbierto = "https://raw.githubusercontent.com/horrorparanormales/Avatar-el-Horror/main/cofre%20abierto.png";
+
+let premioIndex, juego = false, intentos = 10;
+
+document.addEventListener("mouseover", e => {
+  if (e.target.closest(".cuadro,button,select")) {
+    hoverSound.currentTime = 0;
+    hoverSound.play();
+  }
+});
+
+function startGame() {
+  bgMusic.volume = 0.5;
+  bgMusic.play();
+  document.getElementById("loadingOverlay").style.display = "flex";
+  setTimeout(() => {
+    document.getElementById("loadingOverlay").style.display = "none";
+    iniciarJuegoReal();
+  }, 4000);
+}
+
+function iniciarJuegoReal() {
+  juego = true;
+  intentos = 10;
+  triesText.textContent = intentos;
+  termoImg.src = termoImgs[0];
+  triesContainer.style.display = "block";
+  document.getElementById("start").style.display = "none";
+
+  const numJugadores = parseInt(document.getElementById("jugadoresSelect").value);
+  let cantidadCofres;
+  if (numJugadores === 1) cantidadCofres = 25;
+  else if (numJugadores === 2) cantidadCofres = 33;
+  else cantidadCofres = 45;
+
+  const c = document.getElementById("cuadros-container");
+  c.innerHTML = "";
+  premioIndex = Math.floor(Math.random() * cantidadCofres);
+
+  for (let i = 0; i < cantidadCofres; i++) {
+    const d = document.createElement("div");
+    d.className = "cuadro";
+    d.onclick = () => {
+      if (!juego) return;
+      openSound.currentTime = 0;
+      openSound.play();
+      i === premioIndex ? win(d) : error(d);
+    };
+    c.appendChild(d);
+  }
+}
+
+function win(c) {
+  juego = false;
+  avatarImg.src = ganador;
+  c.classList.add("premio");
+  const llave = document.createElement("div");
+  llave.className = "llave-ganadora";
+  document.body.appendChild(llave);
+}
+
+function error(c) {
+  c.style.backgroundImage = `url(${cofreAbierto})`;
+  avatarImg.src = confundido;
+  intentos--;
+  triesText.textContent = intentos;
+  termoImg.src = termoImgs[10 - intentos];
+  const o = document.getElementById("errorOverlay");
+  o.style.display = "flex";
+  setTimeout(() => {
+    o.style.display = "none";
+    avatarImg.src = normal;
+    if (intentos <= 0) {
+      juego = false;
+      alert("PERDISTE 👻");
+      location.reload();
+    }
+  }, 2000);
+}
+
+function abrirInstrucciones() {
+  document.getElementById("instruccionesModal").style.display = "flex";
+}
+
+function cerrarInstrucciones() {
+  document.getElementById("instruccionesModal").style.display = "none";
+}
+
+document.getElementById("instruccionesModal").onclick = function(e) {
+  if (e.target === this) cerrarInstrucciones();
+}
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
